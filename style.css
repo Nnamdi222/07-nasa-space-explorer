@@ -7,9 +7,14 @@
 
 /* Base page styles */
 body {
+  min-height: 100vh;
   font-family: Arial, sans-serif;
-  background-color: #f1f1f1;
   padding: 20px;
+  background:
+    radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 35%),
+    linear-gradient(135deg, #01030a 0%, #061126 45%, #000000 100%);
+  color: #ffffff;
+  overflow-y: auto;
 }
 
 /* Centered container */
@@ -35,21 +40,16 @@ h1 {
 }
 
 /* NASA-inspired color scheme */
-body {
-  background: radial-gradient(ellipse at bottom, #020617 0%, #000 40%);
-  color: #ffffff;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  overflow-y: auto;
-}
-
 .site-header h1 {
   color: #ffffff;
+  text-shadow: 0 0 18px rgba(80, 200, 255, 0.3);
 }
 
 /* Logo */
 .logo {
-  width: 140px;
+  width: 150px;
   margin-right: 15px;
+  display: block;
 }
 
 /* Logo glow and circling light */
