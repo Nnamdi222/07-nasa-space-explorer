@@ -30,52 +30,58 @@ function createMediaElement(item) {
 
   const src = item.url || '';
   const lowerSrc = src.toLowerCase();
+  const wrapper = document.createElement('div');
+  wrapper.className = 'video-player';
+
+  let embedUrl = null;
+  let videoId = null;
 
   if (lowerSrc.includes('youtube.com') || lowerSrc.includes('youtu.be') || lowerSrc.includes('youtube-nocookie.com')) {
-    let videoId = null;
-    const watchMatch = src.match(/[?&]v=([^&]+)/i);
-    const embedMatch = src.match(/\/embed\/([^?&/]+)/i);
-    const shortMatch = src.match(/youtu\.be\/([^?&]+)/i);
+    try {
+      const url = new URL(src);
+      const host = url.hostname.toLowerCase();
 
-    if (watchMatch) {
-      videoId = watchMatch[1];
-    } else if (embedMatch) {
-      videoId = embedMatch[1];
-    } else if (shortMatch) {
-      videoId = shortMatch[1];
+      if (host.includes('youtube') || host.includes('youtu.be')) {
+        const watchMatch = url.searchParams.get('v');
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        const shortsMatch = pathParts[0] === 'shorts' ? pathParts[1] : null;
+        const embedMatch = pathParts[0] === 'embed' ? pathParts[1] : null;
+        const shortMatch = host.includes('youtu.be') ? pathParts[0] : null;
+
+        videoId = watchMatch || embedMatch || shortsMatch || shortMatch;
+      }
+    } catch (error) {
+      const watchMatch = src.match(/[?&]v=([^&]+)/i);
+      const embedMatch = src.match(/\/embed\/([^?&/]+)/i);
+      const shortMatch = src.match(/youtu\.be\/([^?&]+)/i);
+      const shortsMatch = src.match(/youtube\.com\/shorts\/([^?&/]+)/i);
+      videoId = watchMatch?.[1] || embedMatch?.[1] || shortMatch?.[1] || shortsMatch?.[1];
     }
 
     if (videoId) {
-      const iframe = document.createElement('iframe');
-      iframe.src = `https://www.youtube.com/embed/${videoId}`;
-      iframe.title = item.title || 'NASA video';
-      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-      iframe.allowFullscreen = true;
-      iframe.setAttribute('loading', 'lazy');
-      iframe.style.width = '100%';
-      iframe.style.aspectRatio = '16 / 9';
-      iframe.style.border = '0';
-      return iframe;
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
     }
   }
 
   if (lowerSrc.includes('vimeo.com')) {
     const match = src.match(/vimeo\.com\/(\d+)/i);
     if (match) {
-      const iframe = document.createElement('iframe');
-      iframe.src = `https://player.vimeo.com/video/${match[1]}`;
-      iframe.title = item.title || 'NASA video';
-      iframe.allow = 'autoplay; fullscreen; picture-in-picture';
-      iframe.allowFullscreen = true;
-      iframe.setAttribute('loading', 'lazy');
-      iframe.style.width = '100%';
-      iframe.style.aspectRatio = '16 / 9';
-      iframe.style.border = '0';
-      return iframe;
+      embedUrl = `https://player.vimeo.com/video/${match[1]}`;
     }
   }
 
-  if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(src) || lowerSrc.includes('video/mp4')) {
+  if (embedUrl) {
+    const iframe = document.createElement('iframe');
+    iframe.src = embedUrl;
+    iframe.title = item.title || 'NASA video';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('loading', 'lazy');
+    iframe.style.width = '100%';
+    iframe.style.aspectRatio = '16 / 9';
+    iframe.style.border = '0';
+    wrapper.appendChild(iframe);
+  } else if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(src) || lowerSrc.includes('video/mp4')) {
     const video = document.createElement('video');
     video.controls = true;
     video.preload = 'metadata';
@@ -92,15 +98,28 @@ function createMediaElement(item) {
     source.src = src;
     source.type = lowerSrc.includes('.webm') ? 'video/webm' : lowerSrc.includes('.ogg') ? 'video/ogg' : 'video/mp4';
     video.appendChild(source);
-    return video;
+    wrapper.appendChild(video);
+  } else {
+    const link = document.createElement('a');
+    link.href = src;
+    link.textContent = 'Open video';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.className = 'video-link';
+    wrapper.appendChild(link);
   }
 
-  const link = document.createElement('a');
-  link.href = src;
-  link.textContent = 'Open video';
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  return link;
+  if (src) {
+    const openLink = document.createElement('a');
+    openLink.href = src;
+    openLink.textContent = 'Watch in new tab';
+    openLink.target = '_blank';
+    openLink.rel = 'noopener noreferrer';
+    openLink.className = 'video-link';
+    wrapper.appendChild(openLink);
+  }
+
+  return wrapper;
 }
 
 function renderGallery(container, items) {
