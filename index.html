@@ -19,10 +19,23 @@
       <button>Get Space Images</button>
     </div>
 
+    <div id="didYouKnow" class="did-you-know" aria-live="polite"></div>
+
     <div id="gallery" class="gallery">
       <div class="placeholder">
         <div class="placeholder-icon">🔭</div>
         <p>Select a date range and click "Get Space Images" to explore the cosmos!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for full-size image / video -->
+  <div id="modal" class="modal hidden" role="dialog" aria-hidden="true">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content" role="document">
+      <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
+      <div id="modalBody" class="modal-body">
+        <!-- Filled dynamically -->
       </div>
     </div>
   </div>

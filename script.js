@@ -51,34 +51,95 @@ function renderGallery(container, items) {
 			mediaEl.src = item.url;
 			mediaEl.alt = item.title || 'NASA image';
 		} else {
-			// For videos, provide a link and optional thumbnail
-			const link = document.createElement('a');
-			link.href = item.url;
-			link.target = '_blank';
-			link.rel = 'noopener';
-			link.textContent = 'View video on external site';
-			mediaEl = link;
+			// Video: show thumbnail if available, otherwise show a simple play badge
+			if (item.thumbnail_url) {
+				mediaEl = document.createElement('img');
+				mediaEl.src = item.thumbnail_url;
+				mediaEl.alt = item.title || 'NASA video thumbnail';
+			} else {
+				const vidBox = document.createElement('div');
+				vidBox.style.height = '200px';
+				vidBox.style.display = 'flex';
+				vidBox.style.alignItems = 'center';
+				vidBox.style.justifyContent = 'center';
+				vidBox.style.background = '#000';
+				vidBox.style.color = '#fff';
+				vidBox.textContent = '▶ Video';
+				mediaEl = vidBox;
+			}
 		}
 
 		// Description
 		const desc = document.createElement('p');
 		desc.textContent = truncate(item.explanation, 220);
 
-		// Clickable area opens full-resolution if available
-		const wrapper = document.createElement('a');
-		wrapper.style.textDecoration = 'none';
-		wrapper.style.color = 'inherit';
-		wrapper.target = '_blank';
-		wrapper.rel = 'noopener';
-		wrapper.href = item.hdurl || item.url || '#';
-
+		// Clickable area opens modal with full details
+		const wrapper = document.createElement('div');
+		wrapper.style.cursor = 'pointer';
+		wrapper.setAttribute('role', 'button');
+		wrapper.setAttribute('tabindex', '0');
 		wrapper.appendChild(title);
 		wrapper.appendChild(mediaEl);
 		wrapper.appendChild(desc);
 
+		wrapper.addEventListener('click', () => openModal(item));
+		wrapper.addEventListener('keyup', (e) => { if (e.key === 'Enter') openModal(item); });
+
 		card.appendChild(wrapper);
 		container.appendChild(card);
 	});
+}
+
+// Modal handling (same behavior as js/script.js)
+function openModal(item) {
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modalBody');
+  modalBody.innerHTML = '';
+
+  const title = document.createElement('h2');
+  title.textContent = item.title || item.date || '';
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = item.date || '';
+
+  modalBody.appendChild(title);
+  modalBody.appendChild(meta);
+
+  if (item.media_type === 'image') {
+    const img = document.createElement('img');
+    img.src = item.hdurl || item.url;
+    img.alt = item.title || 'NASA image';
+    modalBody.appendChild(img);
+  } else {
+    let src = item.url;
+    if (src && src.includes('watch?v=')) {
+      src = src.replace('watch?v=', 'embed/');
+    }
+    if (src && src.includes('youtu.be/')) {
+      const id = src.split('youtu.be/')[1];
+      src = `https://www.youtube.com/embed/${id}`;
+    }
+    const iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    modalBody.appendChild(iframe);
+  }
+
+  const expl = document.createElement('p');
+  expl.textContent = item.explanation || '';
+  modalBody.appendChild(expl);
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal() {
+  const modal = document.getElementById('modal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  const modalBody = document.getElementById('modalBody');
+  if (modalBody) modalBody.innerHTML = '';
 }
 
 async function fetchAPODRange(startDate, endDate) {
@@ -133,5 +194,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// Initial load to show recent images
 	load();
+
+	// Modal close handlers
+	const modalClose = document.getElementById('modalClose');
+	const modalBackdrop = document.getElementById('modalBackdrop');
+	modalClose.addEventListener('click', closeModal);
+	modalBackdrop.addEventListener('click', closeModal);
+	document.addEventListener('keyup', (e) => { if (e.key === 'Escape') closeModal(); });
+
+	// Did You Know facts
+	const facts = [
+		'The Hubble Space Telescope has provided data for over 1.4 million observations.',
+		'Saturn could float in water because it is mostly made of gas.',
+		'A day on Venus is longer than its year.',
+		'There are more trees on Earth than stars in the Milky Way (estimated).',
+		'Neutron stars can spin up to 716 times per second.'
+	];
+	const factBox = document.getElementById('didYouKnow');
+	if (factBox) factBox.textContent = `Did you know? ${facts[Math.floor(Math.random() * facts.length)]}`;
 });
 
