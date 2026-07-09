@@ -101,7 +101,15 @@ function openModal(item) {
 
   const meta = document.createElement('div');
   meta.className = 'meta';
-  meta.textContent = item.date || '';
+	let dateStr = '';
+	if (item.date) {
+		try {
+			dateStr = new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+		} catch (e) {
+			dateStr = item.date;
+		}
+	}
+	meta.textContent = dateStr;
 
   modalBody.appendChild(title);
   modalBody.appendChild(meta);

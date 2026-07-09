@@ -36,18 +36,65 @@ h1 {
 
 /* NASA-inspired color scheme */
 body {
-  background-color: #f6f8fb;
-  color: #0b3d91; /* NASA blue */
+  background: radial-gradient(ellipse at bottom, #020617 0%, #000 40%);
+  color: #ffffff;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  overflow-y: auto;
 }
 
 .site-header h1 {
-  color: #0b3d91;
+  color: #ffffff;
 }
 
 /* Logo */
 .logo {
   width: 140px;
   margin-right: 15px;
+}
+
+/* Logo glow and circling light */
+.logo-wrap {
+  position: relative;
+  display: inline-block;
+  width: 140px;
+  height: auto;
+}
+.logo-wrap .logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 12px rgba(10,120,255,0.25)) drop-shadow(0 2px 6px rgba(0,200,255,0.06));
+  border-radius: 6px;
+  position: relative;
+  z-index: 2;
+}
+.logo-glow {
+  position: absolute;
+  inset: -6px -10px -6px -10px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+  background: conic-gradient(from 0deg, rgba(80,200,255,0.95), rgba(255,255,255,0.6), rgba(80,200,255,0.95), rgba(255,255,255,0.2));
+  filter: blur(16px) saturate(140%);
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  transform-origin: 50% 50%;
+  animation: spinGlow 6s linear infinite;
+}
+
+@keyframes spinGlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Subtle halo around the logo */
+.logo-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -14px -18px -14px -18px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 30% 30%, rgba(80,200,255,0.08), transparent 20%), radial-gradient(circle at 70% 70%, rgba(120,160,255,0.06), transparent 30%);
+  z-index: 0;
 }
 
 /* Date‐picker & button row */
@@ -160,7 +207,7 @@ button:hover {
 
 /* Did You Know box */
 .did-you-know {
-  background: linear-gradient(90deg,#0b3d91 0%, #2a6fd6 100%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
   color: #fff;
   padding: 12px 16px;
   border-radius: 8px;
@@ -180,3 +227,47 @@ button:hover {
 .modal-body h2 { margin-top: 8px; color: #0b3d91; }
 .modal-body .meta { color: #666; margin-bottom: 8px; }
 .modal-body p { line-height: 1.5; }
+
+/* Starfield background and shooting stars */
+.container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.0)),
+    radial-gradient(1.2px 1.2px at 40% 70%, rgba(255,255,255,0.8), rgba(255,255,255,0.0)),
+    radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.7), rgba(255,255,255,0.0));
+  background-repeat: repeat;
+  background-size: 200px 200px, 300px 300px, 250px 250px;
+}
+
+/* Shooting star animation */
+.shooting-star {
+  position: fixed;
+  top: -10%;
+  left: -10%;
+  width: 3px;
+  height: 3px;
+  background: linear-gradient(45deg, rgba(255,255,255,1), rgba(255,255,255,0));
+  box-shadow: 0 0 6px 2px rgba(255,255,255,0.8);
+  transform: rotate(25deg) translateX(-100vw);
+  animation: shoot 3s linear infinite;
+  opacity: 0;
+}
+
+@keyframes shoot {
+  0% { transform: translate3d(-10vw, -10vh, 0) scaleX(0.2); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(120vw, 120vh, 0) scaleX(1); opacity: 0; }
+}
+
+/* Add multiple shooting stars with staggered animation delays */
+.shooting-star.s1 { animation-delay: 0s; }
+.shooting-star.s2 { animation-delay: 2.2s; }
+.shooting-star.s3 { animation-delay: 4.6s; }
+
+/* Ensure gallery text is readable */
+.gallery-item { background: rgba(255,255,255,0.03); }
+.gallery-item h3 { color: #fff; }
+.gallery-item p { color: rgba(255,255,255,0.85); }
