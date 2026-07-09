@@ -18,6 +18,91 @@ function truncate(text, max = 200) {
   return text.length > max ? text.slice(0, max) + '…' : text;
 }
 
+function createMediaElement(item) {
+  if (!item) return null;
+
+  if (item.media_type === 'image') {
+    const img = document.createElement('img');
+    img.src = item.hdurl || item.url;
+    img.alt = item.title || 'NASA image';
+    return img;
+  }
+
+  const src = item.url || '';
+  const lowerSrc = src.toLowerCase();
+
+  if (lowerSrc.includes('youtube.com') || lowerSrc.includes('youtu.be') || lowerSrc.includes('youtube-nocookie.com')) {
+    let videoId = null;
+    const watchMatch = src.match(/[?&]v=([^&]+)/i);
+    const embedMatch = src.match(/\/embed\/([^?&/]+)/i);
+    const shortMatch = src.match(/youtu\.be\/([^?&]+)/i);
+
+    if (watchMatch) {
+      videoId = watchMatch[1];
+    } else if (embedMatch) {
+      videoId = embedMatch[1];
+    } else if (shortMatch) {
+      videoId = shortMatch[1];
+    }
+
+    if (videoId) {
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${videoId}`;
+      iframe.title = item.title || 'NASA video';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.allowFullscreen = true;
+      iframe.setAttribute('loading', 'lazy');
+      iframe.style.width = '100%';
+      iframe.style.aspectRatio = '16 / 9';
+      iframe.style.border = '0';
+      return iframe;
+    }
+  }
+
+  if (lowerSrc.includes('vimeo.com')) {
+    const match = src.match(/vimeo\.com\/(\d+)/i);
+    if (match) {
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://player.vimeo.com/video/${match[1]}`;
+      iframe.title = item.title || 'NASA video';
+      iframe.allow = 'autoplay; fullscreen; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.setAttribute('loading', 'lazy');
+      iframe.style.width = '100%';
+      iframe.style.aspectRatio = '16 / 9';
+      iframe.style.border = '0';
+      return iframe;
+    }
+  }
+
+  if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(src) || lowerSrc.includes('video/mp4')) {
+    const video = document.createElement('video');
+    video.controls = true;
+    video.preload = 'metadata';
+    video.playsInline = true;
+    video.style.width = '100%';
+    video.style.maxHeight = '70vh';
+    video.style.background = '#000';
+
+    if (item.thumbnail_url) {
+      video.poster = item.thumbnail_url;
+    }
+
+    const source = document.createElement('source');
+    source.src = src;
+    source.type = lowerSrc.includes('.webm') ? 'video/webm' : lowerSrc.includes('.ogg') ? 'video/ogg' : 'video/mp4';
+    video.appendChild(source);
+    return video;
+  }
+
+  const link = document.createElement('a');
+  link.href = src;
+  link.textContent = 'Open video';
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  return link;
+}
+
 function renderGallery(container, items) {
   if (!items || items.length === 0) {
     container.innerHTML = `
@@ -111,25 +196,9 @@ function openModal(item) {
   modalBody.appendChild(title);
   modalBody.appendChild(meta);
 
-  if (item.media_type === 'image') {
-    const img = document.createElement('img');
-    img.src = item.hdurl || item.url;
-    img.alt = item.title || 'NASA image';
-    modalBody.appendChild(img);
-  } else {
-    // Try to embed video: convert YouTube watch URLs to embed form if needed
-    let src = item.url;
-    if (src && src.includes('watch?v=')) {
-      src = src.replace('watch?v=', 'embed/');
-    }
-    if (src && src.includes('youtu.be/')) {
-      const id = src.split('youtu.be/')[1];
-      src = `https://www.youtube.com/embed/${id}`;
-    }
-    const iframe = document.createElement('iframe');
-    iframe.src = src;
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-    modalBody.appendChild(iframe);
+  const mediaEl = createMediaElement(item);
+  if (mediaEl) {
+    modalBody.appendChild(mediaEl);
   }
 
   const expl = document.createElement('p');
