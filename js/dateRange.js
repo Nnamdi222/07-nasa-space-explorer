@@ -1,7 +1,3 @@
-
-// NOTE: You do not need to edit this file.
-
-// NASA's APOD API only has images from June 16, 1995 onwards
 const earliestDate = '1995-06-16';
 
 // Get today's date in YYYY-MM-DD format (required by date inputs)
